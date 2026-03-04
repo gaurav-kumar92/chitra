@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Node } from 'konva/lib/Node';
+import type { Node } from 'konva/lib/Node';
 
 export function useClipboard({
     canvasRef,

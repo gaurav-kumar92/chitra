@@ -2,7 +2,7 @@
 'use client';
 
 import { useCallback } from 'react';
-import { Node } from 'konva/lib/Node';
+import type { Node } from 'konva/lib/Node';
 
 export function useGrouping({
     canvasRef,
