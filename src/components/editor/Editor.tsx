@@ -4,11 +4,12 @@
 import { useEffect } from 'react';
 import Script from 'next/script';
 import dynamic from 'next/dynamic';
+import Image from 'next/image';
+import LogoImg from '@/app/logo.png';
 import {
   CanvasProvider,
   useCanvas,
 } from '@/contexts/CanvasContext';
-import { Skeleton } from '@/components/ui/skeleton';
 
 const Canvas = dynamic(() => import('@/components/editor/Canvas'), { ssr: false });
 const Toolbar = dynamic(() => import('@/components/editor/Toolbar'), {
@@ -95,14 +96,15 @@ function EditorUI() {
       />
       <div id="editor-ui">
         <div className="editor-main-column">
-          <h1 className="text-4xl text-center my-4 font-headline" style={{ fontWeight: 400 }}>
-            <span style={{ color: '#F25912' }}>c</span>
-            <span style={{ color: '#FFC400' }}>h</span>
-            <span style={{ color: '#16C47F' }}>i</span>
-            <span style={{ color: '#7C00FE' }}>t</span>
-            <span style={{ color: '#D91656' }}>r</span>
-            <span style={{ color: '#640D5F' }}>a</span>
-          </h1>
+          <div className="flex justify-center items-center py-4">
+            <Image 
+              src={LogoImg} 
+              alt="Chitra" 
+              height={40} 
+              className="w-auto h-10 object-contain"
+              priority
+            />
+          </div>
           <Toolbar />
           
           <div className="relative flex-grow flex flex-col min-h-0" style={{ position: 'relative' }}>
