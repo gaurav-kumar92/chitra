@@ -1,4 +1,3 @@
-
 'use client';
 
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
@@ -92,7 +91,6 @@ const Canvas = forwardRef<any, CanvasProps>(({ canvasSize, isCircular, backgroun
         });
         
         stage.batchDraw();
-        // Trigger fitToScreen after layout settling
         requestAnimationFrame(() => fitToScreen());
     }
   }, [isCircular, canvasSize, fitToScreen]);
@@ -127,11 +125,14 @@ const Canvas = forwardRef<any, CanvasProps>(({ canvasSize, isCircular, backgroun
 
   useEffect(() => {
     if (stageRef.current) {
-      // Use Konva internals for positioning to avoid CSS sub-pixel blurriness
-      stageRef.current.x(Math.round(canvasPosition.x));
-      stageRef.current.y(Math.round(canvasPosition.y));
-      stageRef.current.scale({ x: canvasScale, y: canvasScale });
-      stageRef.current.batchDraw();
+      const container = document.getElementById('canvas-container');
+      if (container) {
+        container.style.transform = `translate(-50%, -50%) scale(${canvasScale})`;
+        // Using x/y for standard panning within the centered CSS container
+        stageRef.current.x(canvasPosition.x);
+        stageRef.current.y(canvasPosition.y);
+        stageRef.current.batchDraw();
+      }
     }
   }, [canvasPosition, canvasScale]);
 
