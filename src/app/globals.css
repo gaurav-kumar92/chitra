@@ -6,6 +6,7 @@
 /* --- GLOBAL STYLES & MOBILE-FIRST LAYOUT --- */
 body {
     font-family: Arial, Helvetica, sans-serif;
+    overscroll-behavior: none; /* Prevents bounce/scroll pull-to-refresh on mobile */
 }
 
 @layer base {
@@ -16,7 +17,7 @@ body {
     --card-foreground: 0 0% 20%;
     --popover: 0 0% 94%;
     --popover-foreground: 0 0% 20%;
-    --primary: 0 0% 20%
+    --primary: 0 0% 20%;
     --primary-foreground: 0 0% 98%;
     --secondary: 0 0% 96.1%;
     --secondary-foreground: 0 0% 9%;
@@ -138,6 +139,7 @@ body {
     min-height: 100vh;
     margin: 0;
     box-sizing: border-box; /* Ensures padding doesn't cause overflow */
+    overscroll-behavior: none; /* Disables pull-to-refresh and rubber-band effects */
 }
 
 #editor-ui {
@@ -150,6 +152,7 @@ body {
     max-height: 100vh;
     padding: 1rem;
     box-sizing: border-box;
+    overflow: hidden; /* Prevents page-level scrolling */
 }
 
 @media (min-width: 1024px) { /* Apply row layout on larger screens */
@@ -177,7 +180,7 @@ body {
     background-color: #e5e7eb;
     overflow: hidden;
     flex: 1;
-    touch-action: none;
+    touch-action: none; /* Prevents all default touch gestures on the canvas */
 }
 
 #canvas-container {

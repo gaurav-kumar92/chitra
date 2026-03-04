@@ -6,8 +6,6 @@ import { useState, useCallback, useEffect, useRef } from "react";
 export function useZoomPan({ canvasRef, isCanvasReady }) {
     const [canvasScale, setCanvasScale] = useState(1);
     const [canvasPosition, setCanvasPosition] = useState({ x: 0, y: 0 });
-    const [isPanning, setIsPanning] = useState(false);
-    const [lastTouch, setLastTouch] = useState<{ x: number; y: number } | null>(null);
     const resizeObserverRef = useRef<ResizeObserver | null>(null);
 
     const fitToScreen = useCallback(() => {
@@ -108,71 +106,6 @@ export function useZoomPan({ canvasRef, isCanvasReady }) {
             }
         };
     }, [isCanvasReady, fitToScreen]);
-
-    // Touch Interaction Logic
-    useEffect(() => {
-        const container = document.getElementById("canvas-wrapper");
-        const stage = canvasRef.current?.stage;
-        if (!container || !stage || !isCanvasReady) return;
-      
-        const getStagePointerFromTouch = (touch: Touch | undefined) => {
-            if (!touch) return null;
-            const rect = container.getBoundingClientRect();
-            return {
-                x: touch.clientX - rect.left,
-                y: touch.clientY - rect.top,
-            };
-        };
-      
-        const onTouchStart = (e: TouchEvent) => {
-            if (!e.touches || e.touches.length !== 1) return;
-            const touch = e.touches[0];
-            const pointer = getStagePointerFromTouch(touch);
-            if (!pointer) return;
-            
-            const konvaTarget = stage.getIntersection(pointer);
-            if (konvaTarget && konvaTarget !== stage && konvaTarget.name() !== 'background') {
-                setIsPanning(false);
-                setLastTouch(null);
-                return;
-            }
-  
-            setIsPanning(true);
-            setLastTouch({ x: touch.clientX, y: touch.clientY });
-        };
-
-        const onTouchMove = (e: TouchEvent) => {
-            if (!isPanning || !lastTouch || !e.touches || e.touches.length !== 1) return;
-            const touch = e.touches[0];
-            e.preventDefault();
-            
-            const dx = touch.clientX - lastTouch.x;
-            const dy = touch.clientY - lastTouch.y;
-  
-            setCanvasPosition((prev) => ({
-                x: prev.x + dx,
-                y: prev.y + dy
-            }));
-            setLastTouch({ x: touch.clientX, y: touch.clientY });
-        };
-      
-        const onTouchEnd = () => {
-            setIsPanning(false);
-            setLastTouch(null);
-        };
-      
-        container.addEventListener("touchstart", onTouchStart, { passive: true });
-        container.addEventListener("touchmove", onTouchMove, { passive: false });
-        container.addEventListener("touchend", onTouchEnd);
-        container.addEventListener('touchcancel', onTouchEnd);
-      
-        return () => {
-            container.removeEventListener("touchstart", onTouchStart);
-            container.removeEventListener("touchmove", onTouchMove);
-            container.removeEventListener("touchend", onTouchEnd);
-            container.removeEventListener('touchcancel', onTouchEnd);
-        };
-    }, [isCanvasReady, isPanning, lastTouch, canvasRef]);
 
     return {
         canvasScale,
