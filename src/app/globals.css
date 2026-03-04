@@ -108,19 +108,16 @@
     background-color: hsl(var(--muted));
     overflow: auto;
     flex: 1;
-    touch-action: none; /* Critical for canvas tool stability */
+    touch-action: pan-x pan-y;/* Critical for canvas tool stability */
     border-radius: var(--radius);
     padding: 120px;
+    -webkit-overflow-scrolling: touch;
 }
 
 #canvas-container {
     transform-origin: 0 0;
     position: absolute;
-    will-change: transform; /* Performance optimization for zoom/pan */
-    backface-visibility: hidden; /* GPU acceleration */
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
+    will-change: transform;
 }
 
 /* --- Layers Panel --- */
@@ -248,6 +245,7 @@
 .button-primary {
     background-color: hsl(var(--primary));
     color: hsl(var(--primary-foreground));
+    font-weight: 600;
 }
 
 .button-secondary {
@@ -256,8 +254,15 @@
 }
 
 .button:hover {
-    filter: brightness(1.1);
+   
     transform: translateY(-1px);
+}
+.button-primary:hover {
+    background-color: hsl(var(--primary) / 0.9);
+}
+
+.button-secondary:hover {
+    background-color: hsl(var(--secondary) / 0.9);
 }
 
 .shape-btn {
@@ -307,7 +312,7 @@
 }
 
 /* --- Utilities & Mixins --- */
-.active {
+.layer-item.active {
     background-color: hsl(var(--primary) / 0.1);
     border-color: hsl(var(--primary));
     color: hsl(var(--primary));
@@ -326,6 +331,31 @@
     align-items: center;
     z-index: 10000;
     color: white;
+}
+
+/* --- Dialog Styles --- */
+
+.dialog-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.25);
+    backdrop-filter: blur(3px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.dialog {
+    background: hsl(var(--card));
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    border: 1px solid hsl(var(--border));
+    box-shadow: 0 30px 60px rgba(0,0,0,0.25);
+    max-width: 420px;
+    width: 90%;
+    position: relative;
+    z-index: 10000;
 }
 
 .loading-spinner {
@@ -355,6 +385,24 @@
     border: 1px solid hsl(var(--border));
     margin-bottom: 1rem;
     align-self: center;
+}
+/* --- Toolbar Buttons Fix --- */
+
+.toolbar button {
+    color: hsl(var(--foreground));
+    background: transparent;
+    border: none;
+}
+
+.toolbar button:hover,
+.toolbar button:focus,
+.toolbar button:active {
+    color: hsl(var(--foreground));
+    outline: none;
+}
+.toolbar svg {
+    stroke: currentColor;
+    fill: none;
 }
 
 @media (min-width: 1024px) {

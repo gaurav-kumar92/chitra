@@ -15,12 +15,17 @@ export function useZoomPan({ canvasRef, isCanvasReady }) {
         const container = document.getElementById('canvas-wrapper');
         if (!container || container.clientWidth === 0 || container.clientHeight === 0) return 0.01;
       
-        // Account for the 120px padding on each side (240px total)
-        const workspacePadding = 240;
-        const containerWidth = container.clientWidth - workspacePadding;
-        const containerHeight = container.clientHeight - workspacePadding;
+        // Account for the padding set in globals.css (120px)
+        const containerWidth = container.clientWidth - 240; 
+        const containerHeight = container.clientHeight - 240;
       
-        const scale = Math.min(containerWidth / stage.width(), containerHeight / stage.height());
+        const marginFactor = 0.92; 
+
+        const scale =
+          Math.min(
+            containerWidth / stage.width(),
+            containerHeight / stage.height()
+          ) * marginFactor;
         
         return Math.max(0.01, parseFloat(scale.toFixed(4)));
     }, [canvasRef]);
@@ -35,41 +40,55 @@ export function useZoomPan({ canvasRef, isCanvasReady }) {
         setCanvasScale(finalScale);
         setMinScale(finalScale);
       
-        // CSS handles centering (left:50%/top:50%/translate(-50%,-50%))
-        // We set internal Konva position to 0,0 since CSS manages the visual offset
-        setCanvasPosition({ 
-            x: 0, 
-            y: 0 
+        // Calculate centered position relative to the wrapper's content area
+        const stageWidth = stage.width() * finalScale;
+        const stageHeight = stage.height() * finalScale;
+        
+        // Account for 120px padding
+        const posX = Math.round((container.clientWidth - stageWidth) / 2);
+        const posY = Math.round((container.clientHeight - stageHeight) / 2);
+        
+        setCanvasPosition({
+          x: posX,
+          y: posY
         });
+        
     }, [canvasRef, calculateFitScale]);
 
     const zoom = useCallback(
-        (direction: 'in' | 'out', pointerPos?: { x: number; y: number }) => {
-          if (!canvasRef.current?.stage) return;
-          const container = document.getElementById('canvas-wrapper');
-          if (!container) return;
-      
-          const scaleBy = 1.1;
-          const oldScale = canvasScale;
-          const currentFitScale = calculateFitScale();
-      
-          let newScale;
-          if (direction === 'in') {
-            newScale = oldScale * scaleBy;
-          } else {
-            // Prevent zooming out past fit-to-screen boundary
-            if (oldScale <= currentFitScale + 0.0001) return;
-            newScale = Math.max(currentFitScale, oldScale / scaleBy);
-          }
-          
-          newScale = Math.max(0.01, Math.min(newScale, 20));
-      
-          setCanvasScale(newScale);
-          // Centering is maintained via CSS translate(-50%, -50%)
-          setCanvasPosition({ x: 0, y: 0 });
-          setMinScale(currentFitScale);
-        },
-        [canvasScale, canvasRef, calculateFitScale]
+      (direction: 'in' | 'out') => {
+        if (!canvasRef.current?.stage) return;
+        const container = document.getElementById('canvas-wrapper');
+        if (!container) return;
+    
+        const scaleBy = 1.1;
+        const oldScale = canvasScale;
+        const currentFitScale = calculateFitScale();
+    
+        let newScale;
+    
+        if (direction === 'in') {
+          newScale = oldScale * scaleBy;
+        } else {
+          if (oldScale <= currentFitScale + 0.0001) return;
+          newScale = Math.max(currentFitScale, oldScale / scaleBy);
+        }
+    
+        newScale = Math.max(0.01, Math.min(newScale, 20));
+    
+        const scaleRatio = newScale / oldScale;
+    
+        setCanvasScale(newScale);
+    
+        // Maintain center point during zoom
+        setCanvasPosition({
+          x: Math.round(canvasPosition.x * scaleRatio),
+          y: Math.round(canvasPosition.y * scaleRatio)
+        });
+    
+        setMinScale(currentFitScale);
+      },
+      [canvasScale, canvasPosition, canvasRef, calculateFitScale]
     );
 
     const zoomIn = useCallback(() => zoom('in'), [zoom]);
@@ -97,7 +116,6 @@ export function useZoomPan({ canvasRef, isCanvasReady }) {
         resizeObserverRef.current = new ResizeObserver(() => {
             const newMin = calculateFitScale();
             setMinScale(newMin);
-            // Re-fit to screen if workspace dimensions change
             requestAnimationFrame(() => fitToScreen());
         });
 

@@ -127,8 +127,9 @@ const Canvas = forwardRef<any, CanvasProps>(({ canvasSize, isCircular, backgroun
 
   useEffect(() => {
     if (stageRef.current) {
-      stageRef.current.x(canvasPosition.x);
-      stageRef.current.y(canvasPosition.y);
+      // Use Konva internals for positioning to avoid CSS sub-pixel blurriness
+      stageRef.current.x(Math.round(canvasPosition.x));
+      stageRef.current.y(Math.round(canvasPosition.y));
       stageRef.current.scale({ x: canvasScale, y: canvasScale });
       stageRef.current.batchDraw();
     }
@@ -136,7 +137,7 @@ const Canvas = forwardRef<any, CanvasProps>(({ canvasSize, isCircular, backgroun
 
   return (
     <div className="relative-canvas flex-grow w-full h-full min-h-0 overflow-hidden" id="canvas-wrapper">
-      <div id="canvas-container" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}></div>
+      <div id="canvas-container" style={{ position: 'absolute', top: 0, left: 0 }}></div>
     </div>
   );
 });
