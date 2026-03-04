@@ -46,8 +46,8 @@ const Toolbar = () => {
         <div className="flex items-center justify-center gap-1">
           {/* Add */}
           <Button
-            variant="default"
-            size="sm"
+            variant="ghost"
+            size="icon"
             aria-label="Add"
             title="Add"
             onClick={() => {
@@ -63,7 +63,7 @@ const Toolbar = () => {
           {/* Save Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="default" size="sm" aria-label="Save" title="Save">
+              <Button variant="ghost" size="icon" aria-label="Save" title="Save">
                 <Save className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
