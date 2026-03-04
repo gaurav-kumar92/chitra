@@ -106,10 +106,11 @@
     position: relative;
     width: 100%;
     background-color: hsl(var(--muted));
-    overflow: hidden;
+    overflow: auto;
     flex: 1;
     touch-action: none; /* Critical for canvas tool stability */
     border-radius: var(--radius);
+    padding: 120px;
 }
 
 #canvas-container {
@@ -117,6 +118,9 @@
     position: absolute;
     will-change: transform; /* Performance optimization for zoom/pan */
     backface-visibility: hidden; /* GPU acceleration */
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
 }
 
 /* --- Layers Panel --- */
@@ -350,6 +354,7 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     border: 1px solid hsl(var(--border));
     margin-bottom: 1rem;
+    align-self: center;
 }
 
 @media (min-width: 1024px) {

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useCallback, useEffect, useRef } from "react";
@@ -14,13 +15,13 @@ export function useZoomPan({ canvasRef, isCanvasReady }) {
         const container = document.getElementById('canvas-wrapper');
         if (!container || container.clientWidth === 0 || container.clientHeight === 0) return 0.01;
       
-        const padding = 40;
-        const containerWidth = container.clientWidth - padding;
-        const containerHeight = container.clientHeight - padding;
+        // Account for the 120px padding on each side (240px total)
+        const workspacePadding = 240;
+        const containerWidth = container.clientWidth - workspacePadding;
+        const containerHeight = container.clientHeight - workspacePadding;
       
         const scale = Math.min(containerWidth / stage.width(), containerHeight / stage.height());
         
-        // Use a rounded scale for stability
         return Math.max(0.01, parseFloat(scale.toFixed(4)));
     }, [canvasRef]);
 
@@ -34,13 +35,11 @@ export function useZoomPan({ canvasRef, isCanvasReady }) {
         setCanvasScale(finalScale);
         setMinScale(finalScale);
       
-        // Perfect centering logic
-        const newX = (container.clientWidth - stage.width() * finalScale) / 2;
-        const newY = (container.clientHeight - stage.height() * finalScale) / 2;
-      
+        // CSS handles centering (left:50%/top:50%/translate(-50%,-50%))
+        // We set internal Konva position to 0,0 since CSS manages the visual offset
         setCanvasPosition({ 
-            x: Math.round(newX), 
-            y: Math.round(newY) 
+            x: 0, 
+            y: 0 
         });
     }, [canvasRef, calculateFitScale]);
 
@@ -58,33 +57,19 @@ export function useZoomPan({ canvasRef, isCanvasReady }) {
           if (direction === 'in') {
             newScale = oldScale * scaleBy;
           } else {
-            // Boundary: prevent zooming out past the "fit to screen" size
+            // Prevent zooming out past fit-to-screen boundary
             if (oldScale <= currentFitScale + 0.0001) return;
             newScale = Math.max(currentFitScale, oldScale / scaleBy);
           }
           
           newScale = Math.max(0.01, Math.min(newScale, 20));
       
-          const pointer = pointerPos || {
-            x: container.clientWidth / 2,
-            y: container.clientHeight / 2,
-          };
-      
-          const mousePointTo = {
-            x: (pointer.x - canvasPosition.x) / oldScale,
-            y: (pointer.y - canvasPosition.y) / oldScale,
-          };
-      
-          const newPos = {
-            x: pointer.x - mousePointTo.x * newScale,
-            y: pointer.y - mousePointTo.y * newScale,
-          };
-      
           setCanvasScale(newScale);
-          setCanvasPosition(newPos);
+          // Centering is maintained via CSS translate(-50%, -50%)
+          setCanvasPosition({ x: 0, y: 0 });
           setMinScale(currentFitScale);
         },
-        [canvasScale, canvasPosition, canvasRef, calculateFitScale]
+        [canvasScale, canvasRef, calculateFitScale]
     );
 
     const zoomIn = useCallback(() => zoom('in'), [zoom]);
@@ -99,21 +84,20 @@ export function useZoomPan({ canvasRef, isCanvasReady }) {
             const currentFitScale = calculateFitScale();
             setCanvasScale(Math.max(currentFitScale, newScale));
             setMinScale(currentFitScale);
+            setCanvasPosition({ x: 0, y: 0 });
           }
         },
         [fitToScreen, calculateFitScale]
     );
 
-    // Dynamic resize monitoring
     useEffect(() => {
         const container = document.getElementById("canvas-wrapper");
         if (!container || !isCanvasReady) return;
 
         resizeObserverRef.current = new ResizeObserver(() => {
-            // Recalculate minScale whenever container dimensions change
             const newMin = calculateFitScale();
             setMinScale(newMin);
-            // Re-fit to screen if we resize
+            // Re-fit to screen if workspace dimensions change
             requestAnimationFrame(() => fitToScreen());
         });
 
