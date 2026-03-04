@@ -127,10 +127,11 @@ const Canvas = forwardRef<any, CanvasProps>(({ canvasSize, isCircular, backgroun
     if (stageRef.current) {
       const container = document.getElementById('canvas-container');
       if (container) {
-        container.style.transform = `translate(-50%, -50%) scale(${canvasScale})`;
-        // Using x/y for standard panning within the centered CSS container
-        stageRef.current.x(canvasPosition.x);
-        stageRef.current.y(canvasPosition.y);
+        stageRef.current.scale({ x: canvasScale, y: canvasScale });
+        stageRef.current.position({
+          x: canvasPosition.x,
+          y: canvasPosition.y
+        });
         stageRef.current.batchDraw();
       }
     }

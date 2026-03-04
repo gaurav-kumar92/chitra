@@ -9,39 +9,66 @@ export function useZoomPan({ canvasRef, isCanvasReady }) {
     const resizeObserverRef = useRef<ResizeObserver | null>(null);
 
     const calculateFitScale = useCallback(() => {
-        if (!canvasRef.current?.stage) return 0.01;
-        const stage = canvasRef.current.stage;
-        const container = document.getElementById('canvas-wrapper');
-        if (!container || container.clientWidth === 0 || container.clientHeight === 0) return 0.01;
-      
-        const containerWidth = container.clientWidth - 240; 
-        const containerHeight = container.clientHeight - 240;
-      
-        const marginFactor = 0.92; 
-
-        const scale =
-          Math.min(
-            containerWidth / stage.width(),
-            containerHeight / stage.height()
-          ) * marginFactor;
-        
-        return Math.max(0.01, parseFloat(scale.toFixed(4)));
+      if (!canvasRef.current?.stage) return 0.01;
+    
+      const stage = canvasRef.current.stage;
+      const container = document.getElementById('canvas-wrapper');
+      if (!container) return 0.01;
+    
+      const containerWidth = container.clientWidth;
+      const containerHeight = container.clientHeight;
+    
+      const marginFactor = 0.92;
+    
+      const scale =
+        Math.min(
+          containerWidth / stage.width(),
+          containerHeight / stage.height()
+        ) * marginFactor;
+    
+      return Math.max(0.01, parseFloat(scale.toFixed(4)));
+    
     }, [canvasRef]);
 
     const fitToScreen = useCallback(() => {
-        const finalScale = calculateFitScale();
-        setCanvasScale(finalScale);
-        setMinScale(finalScale);
-        setCanvasPosition({ x: 0, y: 0 });
-    }, [calculateFitScale]);
+      if (!canvasRef.current?.stage) return;
+    
+      const stage = canvasRef.current.stage;
+      const container = document.getElementById('canvas-wrapper');
+      if (!container) return;
+    
+      const finalScale = calculateFitScale();
+    
+      const stageWidth = stage.width() * finalScale;
+      const stageHeight = stage.height() * finalScale;
+    
+      const posX = (container.clientWidth - stageWidth) / 2;
+      const posY = (container.clientHeight - stageHeight) / 2;
+    
+      setCanvasScale(finalScale);
+      setMinScale(finalScale);
+    
+      setCanvasPosition({
+        x: posX,
+        y: posY
+      });
 
+      requestAnimationFrame(() => {
+        container.scrollTop = 0;
+        container.scrollLeft = 0;
+      });
+    
+    }, [canvasRef, calculateFitScale]);
     const zoom = useCallback(
       (direction: 'in' | 'out') => {
+        if (!canvasRef.current?.stage) return;
+    
         const scaleBy = 1.1;
         const oldScale = canvasScale;
         const currentFitScale = calculateFitScale();
     
         let newScale;
+    
         if (direction === 'in') {
           newScale = oldScale * scaleBy;
         } else {
@@ -50,10 +77,13 @@ export function useZoomPan({ canvasRef, isCanvasReady }) {
         }
     
         newScale = Math.max(0.01, Math.min(newScale, 20));
+    
+        // IMPORTANT: only change scale
         setCanvasScale(newScale);
         setMinScale(currentFitScale);
+    
       },
-      [canvasScale, calculateFitScale]
+      [canvasScale, canvasRef, calculateFitScale]
     );
 
     const zoomIn = useCallback(() => zoom('in'), [zoom]);
@@ -81,6 +111,7 @@ export function useZoomPan({ canvasRef, isCanvasReady }) {
         resizeObserverRef.current = new ResizeObserver(() => {
             const newMin = calculateFitScale();
             setMinScale(newMin);
+            // Re-fit to screen if workspace dimensions change
             requestAnimationFrame(() => fitToScreen());
         });
 
