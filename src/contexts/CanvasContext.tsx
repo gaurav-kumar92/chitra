@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, {
@@ -96,6 +95,7 @@ type CanvasContextType = {
   backgroundImageProps: BackgroundImageProps;
   
   canvasScale: number;
+  minScale: number;
   canvasPosition: { x: number; y: number };
   setCanvasPosition: React.Dispatch<React.SetStateAction<{ x: number; y: number }>>;
   zoomIn: () => void;
@@ -184,6 +184,7 @@ export const CanvasProvider = ({ children }: { children: ReactNode }) => {
     zoomOut,
     fitToScreen,
     handleZoomChange,
+    minScale,
   } = useZoomPan({ canvasRef, isCanvasReady });
   
 
@@ -528,7 +529,7 @@ export const CanvasProvider = ({ children }: { children: ReactNode }) => {
           backgroundRect.fillPriority('linear-gradient');
         
           let start = { x: 0, y: 0 };
-          let end = { x: 0, y: 0 };
+          let end = { x: 0, y: rectHeight };
         
           const rectWidth = backgroundRect.width();
           const rectHeight = backgroundRect.height();
@@ -637,7 +638,7 @@ export const CanvasProvider = ({ children }: { children: ReactNode }) => {
     setEditingShapeNode, editingFrameNode, setEditingFrameNode, editingMaskNode, setEditingMaskNode, editingTextNode, 
     setEditingTextNode, isCropModalOpen, setCropModalOpen, nodeToCrop, setNodeToCrop,
     canvasSize, setCanvasSize, backgroundColor, setBackgroundColor, backgroundImage, setBackgroundImage, backgroundImageProps, clipboard,
-    canvasScale, canvasPosition, setCanvasPosition, zoomIn, zoomOut, fitToScreen, handleZoomChange,
+    canvasScale, minScale, canvasPosition, setCanvasPosition, zoomIn, zoomOut, fitToScreen, handleZoomChange,
     updateLayers, deselectNodes, handleSave, handleMoveNode, handleAlign, handleMoveToFront, handleMoveToBack, handleOpacityChange, handleScaleChange, handleRotationChange, handleFlip,
     handleColorUpdate, handleSelectItem, addImageFromComputer, handleAddShape, handleUpdateShape, handleAddOrUpdateText,
     handleAddFrame, handleUpdateFrame, handleAddMask, handleUpdateMask, handleAddClipart, handleAddIcon, handleAddSymbol, addImageToMask, handleMaskImageZoom,

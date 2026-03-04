@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useCallback, useEffect, useRef } from "react";
@@ -6,13 +5,14 @@ import { useState, useCallback, useEffect, useRef } from "react";
 export function useZoomPan({ canvasRef, isCanvasReady }) {
     const [canvasScale, setCanvasScale] = useState(1);
     const [canvasPosition, setCanvasPosition] = useState({ x: 0, y: 0 });
+    const [minScale, setMinScale] = useState(0.01);
     const resizeObserverRef = useRef<ResizeObserver | null>(null);
 
-    const fitToScreen = useCallback(() => {
-        if (!canvasRef.current?.stage) return;
+    const calculateFitScale = useCallback(() => {
+        if (!canvasRef.current?.stage) return 0.01;
         const stage = canvasRef.current.stage;
         const container = document.getElementById('canvas-wrapper');
-        if (!container || container.clientWidth === 0 || container.clientHeight === 0) return;
+        if (!container || container.clientWidth === 0 || container.clientHeight === 0) return 0.01;
       
         const padding = 40;
         const containerWidth = container.clientWidth - padding;
@@ -21,8 +21,18 @@ export function useZoomPan({ canvasRef, isCanvasReady }) {
         const scale = Math.min(containerWidth / stage.width(), containerHeight / stage.height());
         
         // Use a rounded scale for stability
-        const finalScale = Math.max(0.01, parseFloat(scale.toFixed(4)));
+        return Math.max(0.01, parseFloat(scale.toFixed(4)));
+    }, [canvasRef]);
+
+    const fitToScreen = useCallback(() => {
+        if (!canvasRef.current?.stage) return;
+        const stage = canvasRef.current.stage;
+        const container = document.getElementById('canvas-wrapper');
+        if (!container) return;
+      
+        const finalScale = calculateFitScale();
         setCanvasScale(finalScale);
+        setMinScale(finalScale);
       
         // Perfect centering logic
         const newX = (container.clientWidth - stage.width() * finalScale) / 2;
@@ -32,7 +42,7 @@ export function useZoomPan({ canvasRef, isCanvasReady }) {
             x: Math.round(newX), 
             y: Math.round(newY) 
         });
-    }, [canvasRef]);
+    }, [canvasRef, calculateFitScale]);
 
     const zoom = useCallback(
         (direction: 'in' | 'out', pointerPos?: { x: number; y: number }) => {
@@ -42,12 +52,15 @@ export function useZoomPan({ canvasRef, isCanvasReady }) {
       
           const scaleBy = 1.1;
           const oldScale = canvasScale;
+          const currentFitScale = calculateFitScale();
       
           let newScale;
           if (direction === 'in') {
             newScale = oldScale * scaleBy;
           } else {
-            newScale = oldScale / scaleBy;
+            // Boundary: prevent zooming out past the "fit to screen" size
+            if (oldScale <= currentFitScale + 0.0001) return;
+            newScale = Math.max(currentFitScale, oldScale / scaleBy);
           }
           
           newScale = Math.max(0.01, Math.min(newScale, 20));
@@ -69,8 +82,9 @@ export function useZoomPan({ canvasRef, isCanvasReady }) {
       
           setCanvasScale(newScale);
           setCanvasPosition(newPos);
+          setMinScale(currentFitScale);
         },
-        [canvasScale, canvasPosition, canvasRef]
+        [canvasScale, canvasPosition, canvasRef, calculateFitScale]
     );
 
     const zoomIn = useCallback(() => zoom('in'), [zoom]);
@@ -82,10 +96,12 @@ export function useZoomPan({ canvasRef, isCanvasReady }) {
             fitToScreen();
           } else {
             const newScale = parseFloat(value);
-            setCanvasScale(newScale);
+            const currentFitScale = calculateFitScale();
+            setCanvasScale(Math.max(currentFitScale, newScale));
+            setMinScale(currentFitScale);
           }
         },
-        [fitToScreen]
+        [fitToScreen, calculateFitScale]
     );
 
     // Dynamic resize monitoring
@@ -94,7 +110,10 @@ export function useZoomPan({ canvasRef, isCanvasReady }) {
         if (!container || !isCanvasReady) return;
 
         resizeObserverRef.current = new ResizeObserver(() => {
-            // Use requestAnimationFrame to ensure the layout has settled
+            // Recalculate minScale whenever container dimensions change
+            const newMin = calculateFitScale();
+            setMinScale(newMin);
+            // Re-fit to screen if we resize
             requestAnimationFrame(() => fitToScreen());
         });
 
@@ -105,7 +124,7 @@ export function useZoomPan({ canvasRef, isCanvasReady }) {
                 resizeObserverRef.current.disconnect();
             }
         };
-    }, [isCanvasReady, fitToScreen]);
+    }, [isCanvasReady, fitToScreen, calculateFitScale]);
 
     return {
         canvasScale,
@@ -116,5 +135,6 @@ export function useZoomPan({ canvasRef, isCanvasReady }) {
         zoom,
         fitToScreen,
         handleZoomChange,
+        minScale,
     };
 }

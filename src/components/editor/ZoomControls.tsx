@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState } from 'react';
@@ -9,10 +8,11 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Separator } from '../ui/separator';
 
 const ZoomControls: React.FC = () => {
-  const { canvasScale, zoomIn, zoomOut, fitToScreen } = useCanvas();
+  const { canvasScale, zoomIn, zoomOut, fitToScreen, minScale } = useCanvas();
   const [isOpen, setIsOpen] = useState(false);
 
   const displayScale = `${Math.round(canvasScale * 100)}%`;
+  const isAtMinZoom = canvasScale <= minScale + 0.0001;
 
   const handleFitToScreen = () => {
     fitToScreen();
@@ -36,7 +36,13 @@ const ZoomControls: React.FC = () => {
                 <span>Zoom In</span>
                 <ZoomIn className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" className='justify-between' onClick={zoomOut}>
+            <Button 
+                variant="ghost" 
+                className='justify-between' 
+                onClick={zoomOut} 
+                disabled={isAtMinZoom}
+                title={isAtMinZoom ? "Minimum zoom reached" : "Zoom Out"}
+            >
                 <span>Zoom Out</span>
                 <ZoomOut className="h-4 w-4" />
             </Button>
