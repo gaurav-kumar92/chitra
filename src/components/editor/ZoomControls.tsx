@@ -1,7 +1,7 @@
 
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ZoomIn, ZoomOut, Minimize } from 'lucide-react';
 import { useCanvas } from '@/contexts/CanvasContext';
@@ -10,11 +10,17 @@ import { Separator } from '../ui/separator';
 
 const ZoomControls: React.FC = () => {
   const { canvasScale, zoomIn, zoomOut, fitToScreen } = useCanvas();
+  const [isOpen, setIsOpen] = useState(false);
 
   const displayScale = `${Math.round(canvasScale * 100)}%`;
 
+  const handleFitToScreen = () => {
+    fitToScreen();
+    setIsOpen(false);
+  };
+
   return (
-    <Popover>
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <Button
           variant="ghost"
@@ -35,7 +41,7 @@ const ZoomControls: React.FC = () => {
                 <ZoomOut className="h-4 w-4" />
             </Button>
             <Separator />
-            <Button variant="ghost" className='justify-between' onClick={fitToScreen}>
+            <Button variant="ghost" className='justify-between' onClick={handleFitToScreen}>
                 <span>Fit to Screen</span>
                 <Minimize className="h-4 w-4" />
             </Button>
