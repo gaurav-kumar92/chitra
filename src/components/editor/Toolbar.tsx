@@ -1,7 +1,7 @@
 
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Undo,
   Redo,
@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useCanvas } from '@/contexts/CanvasContext';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const Toolbar = () => {
   const {
@@ -37,138 +38,161 @@ const Toolbar = () => {
     clipboard,
   } = useCanvas();
 
+  const [showStartHint, setShowStartHint] = useState(false);
+
+  useEffect(() => {
+    // Show the hint after a short delay when the app loads
+    const timer = setTimeout(() => {
+      setShowStartHint(true);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
   const hasSelection = selectedNodes.length > 0;
   const canPaste = clipboard.length > 0;
 
+  const handleAddClick = () => {
+    setShowStartHint(false);
+    setAddItemDialogOpen(true);
+    deselectNodes();
+  };
+
   return (
-    
-      <div className="toolbar" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-center gap-1">
-          {/* Add */}
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Add"
-            title="Add"
-            onClick={() => {
-              setAddItemDialogOpen(true);
-              deselectNodes();
-            }}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-    
-          <Separator orientation="vertical" />
-    
-          {/* Save Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="Save" title="Save">
-                <Save className="h-4 w-4" />
+    <div className="toolbar" onClick={(e) => e.stopPropagation()}>
+      <div className="flex items-center justify-center gap-1">
+        {/* Add */}
+        <TooltipProvider>
+          <Tooltip open={showStartHint}>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Add"
+                title="Add"
+                onClick={handleAddClick}
+                className={showStartHint ? "ring-2 ring-primary animate-pulse" : ""}
+              >
+                <Plus className="h-4 w-4" />
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => handleSave('png')}>Save as PNG</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleSave('jpg')}>Save as JPG</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleSave('svg')}>Save as SVG</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleSave('gif')}>Save as GIF</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleSave('pdf')}>Save as PDF (for Print)</DropdownMenuItem>
-              
-            </DropdownMenuContent>
-          </DropdownMenu>
-    
-          <Separator orientation="vertical" />
-    
-          {/* Undo */}
-          <Button
-            variant="ghost"
-            size="icon"
-            disabled={!canUndo}
-            aria-label="Undo"
-            title={canUndo ? 'Undo' : 'Nothing to undo'}
-            onClick={undo}
-          >
-            <Undo className="h-4 w-4" />
-          </Button>
-    
-          {/* Redo */}
-          <Button
-            variant="ghost"
-            size="icon"
-            disabled={!canRedo}
-            aria-label="Redo"
-            title={canRedo ? 'Redo' : 'Nothing to redo'}
-            onClick={redo}
-          >
-            <Redo className="h-4 w-4" />
-          </Button>
-    
-          <Separator orientation="vertical" />
-    
-          {/* Copy */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleCopy}
-            disabled={!hasSelection}
-            aria-label="Copy Selection"
-            title={hasSelection ? "Copy Selection" : "Nothing selected"}
-          >
-            <Copy className="h-4 w-4" />
-          </Button>
-    
-          {/* Paste */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handlePaste}
-            disabled={!canPaste}
-            aria-label="Paste"
-            title={canPaste ? "Paste" : "Clipboard is empty"}
-          >
-            <ClipboardPaste className="h-4 w-4" />
-          </Button>
-    
-          <Separator orientation="vertical" />
-    
-          {/* Lock / Unlock */}
-          <Button
-            variant="ghost"
-            size="icon"
-            disabled={!hasSelection}
-            aria-label={isSelectionLocked ? 'Unlock selected' : 'Lock selected'}
-            title={
-              isSelectionLocked
-                ? 'Unlock selected (all selected are locked)'
-                : isAnySelectedLocked
-                ? 'Some selected are locked'
-                : 'Lock selected'
-            }
-            onClick={toggleLock}
-            className={
-              isAnySelectedLocked
-                ? 'text-green-600 hover:text-green-700 hover:bg-green-50'
-                : undefined
-            }
-          >
-            {isSelectionLocked ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
-          </Button>
-    
-          {/* Delete */}
-          <Button
-            variant={hasSelection ? 'destructive' : 'ghost'}
-            size="icon"
-            disabled={!hasSelection}
-            aria-label="Delete selected"
-            title={hasSelection ? 'Delete selected' : 'Nothing selected'}
-            onClick={handleDelete}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
+            </TooltipTrigger>
+            <TooltipContent 
+              side="bottom" 
+              className="bg-primary text-primary-foreground font-bold border-none shadow-lg animate-in slide-in-from-top-1"
+            >
+              <p>Start here!</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
+        <Separator orientation="vertical" />
+
+        {/* Save Dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" aria-label="Save" title="Save">
+              <Save className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onClick={() => handleSave('png')}>Save as PNG</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleSave('jpg')}>Save as JPG</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleSave('svg')}>Save as SVG</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleSave('gif')}>Save as GIF</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleSave('pdf')}>Save as PDF (for Print)</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <Separator orientation="vertical" />
+
+        {/* Undo */}
+        <Button
+          variant="ghost"
+          size="icon"
+          disabled={!canUndo}
+          aria-label="Undo"
+          title={canUndo ? 'Undo' : 'Nothing to undo'}
+          onClick={undo}
+        >
+          <Undo className="h-4 w-4" />
+        </Button>
+
+        {/* Redo */}
+        <Button
+          variant="ghost"
+          size="icon"
+          disabled={!canRedo}
+          aria-label="Redo"
+          title={canRedo ? 'Redo' : 'Nothing to redo'}
+          onClick={redo}
+        >
+          <Redo className="h-4 w-4" />
+        </Button>
+
+        <Separator orientation="vertical" />
+
+        {/* Copy */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleCopy}
+          disabled={!hasSelection}
+          aria-label="Copy Selection"
+          title={hasSelection ? "Copy Selection" : "Nothing selected"}
+        >
+          <Copy className="h-4 w-4" />
+        </Button>
+
+        {/* Paste */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handlePaste}
+          disabled={!canPaste}
+          aria-label="Paste"
+          title={canPaste ? "Paste" : "Clipboard is empty"}
+        >
+          <ClipboardPaste className="h-4 w-4" />
+        </Button>
+
+        <Separator orientation="vertical" />
+
+        {/* Lock / Unlock */}
+        <Button
+          variant="ghost"
+          size="icon"
+          disabled={!hasSelection}
+          aria-label={isSelectionLocked ? 'Unlock selected' : 'Lock selected'}
+          title={
+            isSelectionLocked
+              ? 'Unlock selected (all selected are locked)'
+              : isAnySelectedLocked
+              ? 'Some selected are locked'
+              : 'Lock selected'
+          }
+          onClick={toggleLock}
+          className={
+            isAnySelectedLocked
+              ? 'text-green-600 hover:text-green-700 hover:bg-green-50'
+              : undefined
+          }
+        >
+          {isSelectionLocked ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
+        </Button>
+
+        {/* Delete */}
+        <Button
+          variant={hasSelection ? 'destructive' : 'ghost'}
+          size="icon"
+          disabled={!hasSelection}
+          aria-label="Delete selected"
+          title={hasSelection ? 'Delete selected' : 'Nothing selected'}
+          onClick={handleDelete}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
       </div>
-    );
-    
+    </div>
+  );
 };
 
 export default Toolbar;
