@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   Undo,
   Redo,
@@ -17,7 +17,6 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useCanvas } from '@/contexts/CanvasContext';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const Toolbar = () => {
   const {
@@ -38,21 +37,10 @@ const Toolbar = () => {
     clipboard,
   } = useCanvas();
 
-  const [showStartHint, setShowStartHint] = useState(false);
-
-  useEffect(() => {
-    // Show the hint after a short delay when the app loads
-    const timer = setTimeout(() => {
-      setShowStartHint(true);
-    }, 1500);
-    return () => clearTimeout(timer);
-  }, []);
-
   const hasSelection = selectedNodes.length > 0;
   const canPaste = clipboard.length > 0;
 
   const handleAddClick = () => {
-    setShowStartHint(false);
     setAddItemDialogOpen(true);
     deselectNodes();
   };
@@ -61,28 +49,15 @@ const Toolbar = () => {
     <div className="toolbar" onClick={(e) => e.stopPropagation()}>
       <div className="flex items-center justify-center gap-1">
         {/* Add */}
-        <TooltipProvider>
-          <Tooltip open={showStartHint}>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="Add"
-                title="Add"
-                onClick={handleAddClick}
-                className={showStartHint ? "ring-2 ring-primary animate-pulse" : ""}
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent 
-              side="bottom" 
-              className="bg-primary text-primary-foreground font-bold border-none shadow-lg animate-in slide-in-from-top-1"
-            >
-              <p>Start here!</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Add"
+          title="Add"
+          onClick={handleAddClick}
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
 
         <Separator orientation="vertical" />
 

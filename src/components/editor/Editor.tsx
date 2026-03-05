@@ -30,6 +30,7 @@ const IconDialog = dynamic(() => import('@/components/editor/IconDialog'), { ssr
 const EmojiDialog = dynamic(() => import('@/components/editor/EmojiDialog'), { ssr: false });
 const OnCanvasTextEditor = dynamic(() => import('@/components/editor/OnCanvasTextEditor'), { ssr: false });
 const CropImageModal = dynamic(() => import('@/components/editor/CropImageModal'), { ssr: false });
+const Walkthrough = dynamic(() => import('@/components/editor/Walkthrough'), { ssr: false });
 
 declare global {
   interface Window {
@@ -201,6 +202,8 @@ function EditorUI() {
           onClose={() => setCropModalOpen(false)}
           onApply={handleApplyCrop}
         />
+
+        <Walkthrough />
       </div>
     </>
   );
