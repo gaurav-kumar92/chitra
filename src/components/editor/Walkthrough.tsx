@@ -44,7 +44,7 @@ const steps = [
   },
   {
     title: "4. Manage Layers",
-    description: "The right panel lists all your objects. You can lock them to prevent accidental moves or reorder them to bring items to the front.",
+    description: "The Layer panel lists all your objects. You can lock them to prevent accidental moves or reorder them to bring items to the front.",
     icon: <Layers className="w-12 h-12 text-primary" />,
   },
   {
