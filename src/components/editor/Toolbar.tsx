@@ -1,7 +1,7 @@
 
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Undo,
   Redo,
@@ -37,10 +37,21 @@ const Toolbar = () => {
     clipboard,
   } = useCanvas();
 
+  const [showHint, setShowHint] = useState(false);
+
+  useEffect(() => {
+    const hasSeenTour = localStorage.getItem('chitra-tour-v2');
+    if (!hasSeenTour) {
+      const timer = setTimeout(() => setShowHint(true), 2500);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
   const hasSelection = selectedNodes.length > 0;
   const canPaste = clipboard.length > 0;
 
   const handleAddClick = () => {
+    setShowHint(false);
     setAddItemDialogOpen(true);
     deselectNodes();
   };
@@ -49,15 +60,25 @@ const Toolbar = () => {
     <div className="toolbar" onClick={(e) => e.stopPropagation()}>
       <div className="flex items-center justify-center gap-1">
         {/* Add */}
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Add"
-          title="Add"
-          onClick={handleAddClick}
-        >
-          <Plus className="h-4 w-4" />
-        </Button>
+        <div className="relative">
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Add"
+            title="Add"
+            onClick={handleAddClick}
+            className={showHint ? "ring-2 ring-primary ring-offset-2" : ""}
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+          
+          {showHint && (
+            <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] font-bold px-2 py-1 rounded shadow-xl animate-bounce whitespace-nowrap z-[100]">
+              START HERE
+              <div className="absolute -top-1 left-1/2 -translate-x-1/2 border-x-4 border-x-transparent border-b-4 border-b-primary"></div>
+            </div>
+          )}
+        </div>
 
         <Separator orientation="vertical" />
 
